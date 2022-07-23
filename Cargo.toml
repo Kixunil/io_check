@@ -1,0 +1,15 @@
+[package]
+name = "io_check"
+version = "0.1.0"
+authors = ["Martin Habovstiak <martin.habovstiak@gmail.com>"]
+edition = "2018"
+description = "Tool for testing read and write split handling."
+repository = "https://github.com/Kixunil/io_check"
+readme = "README.md"
+keywords = ["io", "read", "write", "testing", "flake"]
+categories = ["development-tools::testing"]
+license = "MITNFA"
+
+[dependencies]
+either = "1.0.0"
+backtrace = { version = "0.3.66", optional = true }

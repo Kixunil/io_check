@@ -34,7 +34,7 @@ mod imp {
                     let mut culprit = None;
                     let mut symbols = backtrace.frames().iter().flat_map(|frame| frame.symbols());
                     while let Some(symbol) = symbols.next() {
-                        let is_test_reader_read = symbol.name().map(|name| name.to_string().starts_with("<io_check::TestReader as std::io::Read>::read::"));
+                        let is_test_reader_read = symbol.name().map(|name| name.to_string().starts_with("<io_check::read::TestReader as std::io::Read>::read::"));
                         if is_test_reader_read == Some(true) {
                             culprit = symbols.next();
                             break;

@@ -1,9 +1,34 @@
-pub struct DisplayBacktrace<'a>(pub &'a Option<Backtrace>);
+enum Operation {
+    Read,
+    Write,
+}
+
+pub struct DisplayBacktrace<'a> {
+    backtrace: &'a Option<Backtrace>,
+    operation: Operation
+}
+
+impl<'a> DisplayBacktrace<'a> {
+    pub fn read(backtrace: &'a Option<Backtrace>) -> Self {
+        DisplayBacktrace {
+            backtrace,
+            operation: Operation::Read,
+        }
+    }
+
+    pub fn write(backtrace: &'a Option<Backtrace>) -> Self {
+        DisplayBacktrace {
+            backtrace,
+            operation: Operation::Write,
+        }
+    }
+}
 
 #[cfg(feature = "backtrace")]
 mod imp {
     use std::fmt;
     use std::panic::AssertUnwindSafe;
+    use super::Operation;
 
     pub use backtrace::Backtrace;
 
@@ -29,12 +54,16 @@ mod imp {
     impl<'a> fmt::Display for super::DisplayBacktrace<'a> {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 
-            match &self.0 {
+            match &self.backtrace {
                 Some(backtrace) => {
                     let mut culprit = None;
                     let mut symbols = backtrace.frames().iter().flat_map(|frame| frame.symbols());
+                    let op_fn_name = match self.operation {
+                        Operation::Read => "<io_check::read::TestReader as std::io::Read>::read::",
+                        Operation::Write => "<io_check::write::TestWriter as std::io::Write>::write::",
+                    };
                     while let Some(symbol) = symbols.next() {
-                        let is_test_reader_read = symbol.name().map(|name| name.to_string().starts_with("<io_check::read::TestReader as std::io::Read>::read::"));
+                        let is_test_reader_read = symbol.name().map(|name| name.to_string().starts_with(op_fn_name));
                         if is_test_reader_read == Some(true) {
                             culprit = symbols.next();
                             break;

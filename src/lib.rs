@@ -51,6 +51,8 @@ MITNFA
 "]
 
 pub use read::hack::test_read;
+pub use write::hack::test_write;
 
 pub mod read;
+pub mod write;
 mod backtrace_impl;

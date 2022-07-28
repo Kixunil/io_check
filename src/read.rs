@@ -178,7 +178,7 @@ impl Error {
         let first_panic_message = get_panic_message(&self.unwind);
         match self.failure_info {
             Some(FailureInfo { unwind, pos, backtrace }) => {
-                let backtrace = DisplayBacktrace(&backtrace);
+                let backtrace = DisplayBacktrace::read(&backtrace);
                 let second_panic_message = get_panic_message(&unwind);
                 match (first_panic_message, second_panic_message) {
                     (Some(msg1), Some(msg2)) if msg1 == msg2 => panic!("test failed at position {}: {}\n{}", pos, msg1, backtrace),

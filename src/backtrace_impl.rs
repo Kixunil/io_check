@@ -4,7 +4,9 @@ enum Operation {
 }
 
 pub struct DisplayBacktrace<'a> {
+    #[cfg_attr(not(feature = "backtrace"), allow(unused))]
     backtrace: &'a Option<Backtrace>,
+    #[cfg_attr(not(feature = "backtrace"), allow(unused))]
     operation: Operation
 }
 

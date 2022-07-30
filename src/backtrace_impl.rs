@@ -104,7 +104,7 @@ mod imp {
 
 }
 
-#[cfg(not(feature = "backtrace"))]
+#[cfg(all(not(feature = "backtrace"), not(feature = "rust_1_46")))]
 mod imp {
     use std::panic::AssertUnwindSafe;
 
@@ -130,7 +130,46 @@ mod imp {
 
     impl<'a> fmt::Display for super::DisplayBacktrace<'a> {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "backtrace unavailable - compile with `backtrace` feature to get a backtrace pointing to the location of incorrect IO handling")
+            write!(f, "backtrace unavailable - compile with `backtrace` or `rust_1_46` feature to get the location of incorrect IO handling")
+        }
+    }
+}
+
+#[cfg(all(not(feature = "backtrace"), feature = "rust_1_46"))]
+mod imp {
+    use std::panic::{AssertUnwindSafe, Location};
+
+    use std::fmt;
+
+    pub type Backtrace = &'static std::panic::Location<'static>;
+
+    // Avoids changing variance based on features.
+    // It's UnwindSafe because no operation leaves content in inconsistent state
+    pub struct BacktraceStorageMut<'a>(AssertUnwindSafe<&'a mut Option<Backtrace>>);
+
+    impl<'a> BacktraceStorageMut<'a> {
+        pub fn from_mut(storage: &'a mut Option<Backtrace>) -> Self {
+            BacktraceStorageMut(AssertUnwindSafe(storage))
+        }
+
+        #[track_caller]
+        pub fn capture(&mut self) {
+            *(self.0).0 = Some(Location::caller());
+        }
+    }
+
+    pub fn resolve(_storage: &mut Option<Backtrace>) {
+    }
+
+    impl<'a> fmt::Display for super::DisplayBacktrace<'a> {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            match self.backtrace {
+                Some(location) => {
+                    writeln!(f, "*******\nMost likely culprit in {}:{}:{}\n*******", location.file(), location.line(), location.column())?;
+                    write!(f, "compile with `backtrace` feature to get a full backtrace")
+                },
+                None => write!(f, "no error location found - the problem is most likely unrelated to flaky IO"),
+            }
         }
     }
 }

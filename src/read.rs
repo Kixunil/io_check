@@ -30,8 +30,15 @@ impl<'a> TestReader<'a> {
 }
 
 impl Read for TestReader<'_> {
+    #[cfg_attr(feature = "rust_1_46", track_caller)]
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.0.read(buf)
+        // `read_exact` doesn't have `#[track_caller]`, so we have to bypass it
+        // I don't care to find which version of `either` supports `for_both!` and supporting all
+        // versions is nice.
+        match &mut self.0 {
+            Either::Left(reader) => reader.read(buf),
+            Either::Right(reader) => reader.read(buf),
+        }
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
@@ -89,6 +96,7 @@ impl<'a> SearchingReader<'a> {
 }
 
 impl io::Read for SearchingReader<'_> {
+    #[cfg_attr(feature = "rust_1_46", track_caller)]
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         if self.left.is_empty() {
             self.right.read(buf)

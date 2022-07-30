@@ -12,6 +12,8 @@ license = "MITNFA"
 
 [features]
 default = ["backtrace"]
+# A lightweight alternative to backtrace requires higher Rust 1.46
+rust_1_46 = []
 
 [dependencies]
 either = "1.0.0"

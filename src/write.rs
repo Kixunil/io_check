@@ -74,6 +74,7 @@ impl<'a> TestWriter<'a> {
 }
 
 impl Write for TestWriter<'_> {
+    #[cfg_attr(feature = "rust_1_46", track_caller)]
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         self.check_write(data);
         if data.len() == 1 {
